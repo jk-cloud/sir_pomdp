@@ -16,17 +16,18 @@ world is not well known. So I decided to combine both to find an answer.s
 
 ## How?
  The disease is modeled in compartments
-   Susceptible
-   Infectious
-   Recovered
+  - Susceptible
+  - Infectious
+  - Recovered
 
  In order to model actions as well compartments like
-   vaccinated
-   isolated being infectious
-   isolated beiing susceptible
-   intensive care
-   dead 
-   ...
+  - vaccinated
+  - isolated being infectious
+  - isolated beiing susceptible
+  - intensive care
+  - dead 
+  - ...
+  
   are added. The transistions of changes between these
   compartments, i.e. states, are modelled using transition matrizes.
 
@@ -38,11 +39,11 @@ world is not well known. So I decided to combine both to find an answer.s
   observabl stochastic domains" by L.P. Kaebling et al. 1997.
 
   The possible actions are 
-   do nothing
-   try to find out if someone is infectious
-   isolate an infectious
-   isolate a susceptible
-   vaccinate
+  - do nothing
+  - try to find out if someone is infectious
+  - isolate an infectious
+  - isolate a susceptible
+  - vaccinate
 
    Given a set of "rewards" for each state and action combination
    the model tries to find the optimal "greedy" action.
