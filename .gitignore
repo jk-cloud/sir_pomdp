@@ -2,3 +2,6 @@
 *.asv
 *.m~
 
+# apple
+*.DS_store
+

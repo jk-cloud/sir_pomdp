@@ -5,7 +5,7 @@
 %
 % The disease is modeled in compartments
 %   Susceptible
-%   Infectious
+%   Infectioussss
 %   Recovered
 %
 % In order to model actions as well compartments like
