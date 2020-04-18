@@ -29,20 +29,20 @@ switch(nargin)
     case 2
       DNA=[];
       PLOT=false; 
-    otherwise 
+    otherwise
+      N=1000;    % PopulationSize
+      steps=30;     % time steps  
       DNA=[];
       PLOT=true;
 end
 
-N=1000;    % PopulationSize
-steps=30;     % time steps
 
 P0=Person(0);
 P0.ConsistencyCheck;
 na=P0.GetNumberOfActions;
 
-DNA=3*rand(1,na*P0.GetNumberOfStates);
-DNA=round(DNA);
+%DNA=3*rand(1,na*P0.GetNumberOfStates);
+%DNA=round(DNA);
 
 S=zeros(1,steps);   % susecptible
 I=zeros(1,steps);   % infectious

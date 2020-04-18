@@ -32,8 +32,8 @@ steps=30; % time steps
 p=Person(0);
 p.ConsistencyCheck;
 
-DNA=3*rand(1,p.GetNumberOfActions*p.GetNumberOfStates);
-DNA=round(DNA);
+%DNA=3*rand(1,p.GetNumberOfActions*p.GetNumberOfStates);
+%DNA=round(DNA);
 
 S=zeros(M,steps);   % susecptible
 I=zeros(M,steps);   % infectious
