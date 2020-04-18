@@ -11,19 +11,19 @@
 % In order to model actions as well compartments like
 %   vaccinated
 %   isolated being infectious
-%   isolated beiing susceptible
+%   isolated being susceptible
 %   intensive care
 %   dead 
 %   ...
-%  are added. The transistions of changes between these
-%  compartments, i.e. states, are modelled using transition matrizes.
+%  are added. The transitions of changes between these
+%  compartments, i.e. states, are modeled using transition matrices.
 %
-%  Possible observations are also modelled.
+%  Possible observations are also modeled.
 %  
 %  The model uses a POMDP approach to model the uncertainty in
 %  observations (Partially Observable Markov Decision Process).
-%  I recommend to read the article by "planning and acting in partially
-%  observabl stochastic domains" by L.P. Kaebling et al. 1997.
+%  I recommend to read the article "planning and acting in partially
+%  observable stochastic domains" by L.P. Kaebling et al. 1997.
 %
 %  The possible actions are 
 %   do nothing
@@ -34,7 +34,6 @@
 %
 %   Given a set of "rewards" for each state and action combination
 %   the model tries to find the optimal "greedy" action.
-%
 %
 
 %
