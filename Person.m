@@ -24,7 +24,7 @@ classdef Person  < handle
     properties
         Name = []
     end
-    
+ %%   
     properties(SetAccess=protected)
         notdetect=.99;                      % probability of not detecting the infectious state correctly without a test set [0.0 1.0]
         notdetectTestSet=0.01;              % probability of not detecting the infectious state correctly with a test set [0.0 1.0]
@@ -86,9 +86,13 @@ classdef Person  < handle
         reward=[]; % cumulative reward
         
         DNA=[];
+        
+        vectorize=false; % should be set to false. The alternative code is 
+                         % much slower
     end
     
     methods
+%%        
         function obj = Person(p,DNA)
             %PERSON Construct an instance of this class
             %   
@@ -107,7 +111,7 @@ classdef Person  < handle
             obj.Name = "Person";
             obj.Properties;
         end
-        
+%%        
         function obj = Properties(obj)
             obj.ns=1;
             obj.nib=2;
@@ -144,7 +148,7 @@ classdef Person  < handle
             obj.reward=0;
             obj.InitRewardMatrix;
         end
-        
+%%        
         function str = DisplayTransitionIndizes(obj)
             i=1;
             str{i}=sprintf('susceptible: %i',obj.ns);i=i+1;
@@ -164,7 +168,7 @@ classdef Person  < handle
             end
             
         end
-        
+%%     
         function str = DisplayObservationIndizes(obj)
             i=1;
             str{i}=sprintf('obs susceptible: %i',obj.ons);i=i+1;
@@ -179,7 +183,7 @@ classdef Person  < handle
                 disp(str{k})
             end
         end
-        
+  %%      
         function [ind]=CompileIndizesWithRandomComponent(obj,col,T)
             I=spones(T);
             ri=find(sum(I,2)>1);
@@ -195,7 +199,7 @@ classdef Person  < handle
             end
         end
         
-        
+  %%      
         function R = CompileRandomMatrix(obj,ti,tj,indr,M,N)
             
             [m,n]=size(indr);
@@ -216,7 +220,7 @@ classdef Person  < handle
             
         end
         
-        
+ %%       
         function C=CompileStateChange(obj,T,R,M,N)
             % find the largest negative element row-wise
             
@@ -237,13 +241,11 @@ classdef Person  < handle
                     m(i)=ind(k);
                 end
             end
-            
-            
-            C=sparse(l,m,ones(size(l)),M,N);
-            
+                      
+            C=sparse(l,m,ones(size(l)),M,N);    
         end
                 
-        
+ %%       
         function obj=FindAction(obj)
             % greedy algorithm
             Q=zeros(1,obj.na);
@@ -260,7 +262,7 @@ classdef Person  < handle
                 obj.a=ind;
             end
         end
-        
+%%        
         function str=DisplayActions(obj)
             i=1;
             str{i}=sprintf('do nothing');i=i+1;
@@ -276,7 +278,7 @@ classdef Person  < handle
                 warning('wrong number of possible action obj.na=%i',obj.na);
             end
         end
-        
+%%  
         function str=GetActions(obj)
             i=1;
             str{i}=sprintf('do nothing');i=i+1;
@@ -290,7 +292,7 @@ classdef Person  < handle
                 warning('wrong number of possible action obj.na=%i',obj.na);
             end
         end
-        
+%%    
         function obj=UpdatePerson(obj,p)
             obj.p=p;
             obj.UpdateState;
@@ -300,7 +302,7 @@ classdef Person  < handle
             obj.UpdateReward;
         end
         
-        
+%%      
         function obj=UpdateState(obj)
             v=[];ti=[];tj=[];
             switch(obj.a)
@@ -709,15 +711,40 @@ classdef Person  < handle
             end
             
             % find transitions with random component
+            if(obj.vectorize)
+                % compute a realisation for the whole transition matrix,
+                % i.e. regardless of the current state only depending on
+                % the action
+                indr=obj.CompileIndizesWithRandomComponent(ti,obj.T{obj.a});
+                R = obj.CompileRandomMatrix(ti,tj,indr,obj.n,obj.n);
+                obj.TR = obj.CompileStateChange(obj.T{obj.a},R,obj.n,obj.n);
             
-            indr=obj.CompileIndizesWithRandomComponent(ti,obj.T{obj.a});
-            R = obj.CompileRandomMatrix(ti,tj,indr,obj.n,obj.n);
-            obj.TR = obj.CompileStateChange(obj.T{obj.a},R,obj.n,obj.n);
-            
-            obj.s=obj.TR'*obj.s;
+                obj.s=obj.TR'*obj.s;
+      
+            else
+                % compute a realisation only for the row of the transition
+                % matrix that corresponds to the actual state
+                i=find(obj.s);
+                ind=find(obj.T{obj.a}(i,:));
+                if(length(ind)>1)
+                    j=1;
+                    r=rand;
+                    r=r-obj.T{obj.a}(i,ind(j));
+                    while r>0
+                        j=j+1;
+                        r=r-obj.T{obj.a}(i,ind(j));
+                    end
+                    obj.s=zeros(size(obj.s));
+                    obj.s(ind(j))=1; 
+                else
+                    obj.s=zeros(size(obj.s));
+                    obj.s(ind)=1;  
+                end
+            end
+
             
         end
-        
+ %%       
         function obj=UpdateObservation(obj)
             v=[];oi=[];oj=[];
             switch(obj.a)
@@ -1056,14 +1083,36 @@ classdef Person  < handle
          
             end
             
-            oindr=obj.CompileIndizesWithRandomComponent(oi,obj.O{obj.a});
-            oR = obj.CompileRandomMatrix(oi,oj,oindr,obj.n,obj.no);
+            if(obj.vectorize)
+                % same as for transition matrix
+                oindr=obj.CompileIndizesWithRandomComponent(oi,obj.O{obj.a});
+                oR = obj.CompileRandomMatrix(oi,oj,oindr,obj.n,obj.no);
+                obj.OR = obj.CompileStateChange(obj.O{obj.a},oR,obj.n,obj.no);
+                obj.z=obj.OR'*obj.s;
+            else
+                % compute a realisation only for the row of the transition
+                % matrix that corresponds to the actual state
+                i=find(obj.s);
+                ind=find(obj.O{obj.a}(i,:));
+                if(length(ind)>1)
+                    j=1;
+                    r=rand;
+                    r=r-obj.O{obj.a}(i,ind(j));
+                    while r>0
+                        j=j+1;
+                        r=r-obj.O{obj.a}(i,ind(j));
+                    end
+                    obj.z=zeros(size(obj.z));
+                    obj.z(ind(j))=1; 
+                else
+                    obj.z=zeros(size(obj.z));
+                    obj.z(ind)=1;  
+                end
 
-            obj.OR = obj.CompileStateChange(obj.O{obj.a},oR,obj.n,obj.no);
-            obj.z=obj.OR'*obj.s;
-          %  obj.z=obj.z;
+            end
+
         end
-        
+ %%       
         function obj=UpdateBelief(obj)
             W=obj.O{obj.a}(:,find(obj.z)).*obj.T{obj.a}';
             bs=W*obj.b;
@@ -1101,7 +1150,7 @@ classdef Person  < handle
            end
         end
         
-        
+%%        
         function status=SpreadsInfection(obj)
             i=find(obj.s);
             if( (i>=obj.nib && i<=obj.nie) )
@@ -1110,7 +1159,7 @@ classdef Person  < handle
                 status=false;
             end
         end
-        
+ %%       
         function status=IsInfectious(obj)
             i=find(obj.s);
             if( (i>=obj.nisob && i<=obj.nisoe) || (i>=obj.nib && i<=obj.nie) )
@@ -1119,7 +1168,7 @@ classdef Person  < handle
                 status=false;
             end
         end
-        
+ %%       
         function status=IsRecovered(obj)
            if(obj.s(obj.nr)==1)
                status=true;
@@ -1127,7 +1176,7 @@ classdef Person  < handle
                status=false;
            end
         end
-        
+%%      
         function status=IsVaccinated(obj)
            if(obj.s(obj.nv)==1)
                status=true;
@@ -1135,7 +1184,7 @@ classdef Person  < handle
                status=false;
            end
         end
-        
+%%      
         function status=IsDead(obj)
            if(obj.s(obj.nd)==1)
                status=true;
@@ -1143,7 +1192,7 @@ classdef Person  < handle
                status=false;
            end
         end
-        
+%%        
         function status=IsInIntensiveCare(obj)
             i=find(obj.s);
             if(i>=obj.nitb && i<=obj.nite)
@@ -1152,7 +1201,7 @@ classdef Person  < handle
                 status=false;
             end
         end
-        
+ %%       
         function status=IsInIsolation(obj)
             i=find(obj.s);
             if( (i>=obj.nisob && i<=obj.nisoe) ||  (i>=obj.nisosusb && i<=obj.nisosuse))
@@ -1161,7 +1210,7 @@ classdef Person  < handle
                 status=false;
             end
         end
-        
+ %%       
         function obj=InitRewardMatrix(obj)
             % R(state,action)
             obj.R=zeros(obj.n,obj.na);
@@ -1205,12 +1254,10 @@ classdef Person  < handle
                     obj.R(obj.ns,3)=0;
                     
                 end
-            end
-            
-            
+            end        
         end
         
-        
+  %%      
         function obj=DisplayRewardMatrix(obj)
            figure
            clf
@@ -1222,16 +1269,12 @@ classdef Person  < handle
               xlabel('state')
               ylabel('reward')
            end
-            
-            
-            
         end
-        
+ %%       
         function obj=UpdateReward(obj)
            obj.reward=obj.reward+obj.R(find(obj.s),obj.a); 
         end
-        
-        
+ %%            
         function obj=ConsistencyCheck(obj)
            a_save=obj.a;
            for i=1:obj.na
