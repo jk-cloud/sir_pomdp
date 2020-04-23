@@ -259,7 +259,6 @@ classdef Person  < handle
             else    
                 obj.a=ind;
             end
-            obj.a=1;
         end
 %%        
         function str=DisplayActions(obj)
