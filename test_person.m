@@ -18,7 +18,7 @@ switch(nargin)
      DNA=3*rand(1,p.GetNumberOfActions*p.GetNumberOfStates);
      DNA=round(DNA);           
 end
-
+DNA=[];
 status = false;
 
 
@@ -49,10 +49,13 @@ if(PLOT)
     set(gcf,'Name','evolution of a single person')
     clf
     subplot(1,4,1)
-    plot(a)
+    plot(a,'o')
     xlabel('time')
     ylabel('action')
-    
+    lbs=P.GetActions;
+    yt=linspace(1,length(lbs),length(lbs));
+    yticks(yt);
+    yticklabels(lbs);
     
     subplot(1,4,2)
     surf(S)

@@ -25,7 +25,7 @@ switch(nargin)
       PLOT=true;
 end
 
-M=3;      % realisations  
+M=6;      % realisations  
 N=1000;   % PopulationSize
 steps=30; % time steps
 
@@ -115,8 +115,9 @@ if(PLOT)
     plot(ICA','.')
     pl=plot(mean(ICA),'r-');
     set(pl,'LineWidth',3);
-    
+    ltxt=sprintf('∫ = %.1f ',trapz(mean(ICA)));
     ylabel('intensive care')
+    legend(ltxt)
     
     subplot(9,1,9)
     hold on
