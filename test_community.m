@@ -126,7 +126,7 @@ for t=1:steps
          if(P{C(i,j)}.SpreadsInfection)
             p(i)=p(i)+1;
          end
-         p(i)=1-exp(-0.05*p(i)); % 30% probability of getting infected when meeting 7 infected per day
+         p(i)=1-exp(-0.5*p(i)); % 30% probability of getting infected when meeting 7 infected per day
        end
     end
     
@@ -187,8 +187,9 @@ if(PLOT)
     
     subplot(9,1,8)
     plot(ICA)
-    
+    ltxt=sprintf('∫ = %.1f ',trapz(ICA));
     ylabel('intensive care')
+    legend(ltxt)
     
     subplot(9,1,9)
     plot(REWARD)
