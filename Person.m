@@ -26,20 +26,18 @@ classdef Person  < handle
     end
  %%   
     properties(SetAccess=protected)
-        notdetect=.99;                      % probability of not detecting the infectious state correctly without a test set [0.0 1.0]
-        notdetectTestSet=0.01;              % probability of not detecting the infectious state correctly with a test set [0.0 1.0]
-        NumberOfAvailaleTestSetsPerDay=10;
+        notdetect=.99;                  % probability of not detecting the infectious state correctly without a test set [0.0 1.0]
+        notdetectTestSet=0.2;           % probability of not detecting the infectious state correctly with a test set [0.0 1.0]
         IncubationPeriod=5;             % number of days of after infection, when symptoms show   Covid-19:  mean 5 days 2 to 20 days
         LatentPeriod=5;                 % number of days from infection to being infectious
         DiseaseDuration=10;             % duration in days of having no pathogens after infection
-        vacc=0.9;                       % probability of successfully vaccinating a person [0.0 1.0]
-        RandomContactsPerDay=7;         % maximum number of contacts per day with another individual
-        IntensiveCare=0.01;               % probability of needing intensive care when infected [0.0 1.0]
-        IntensiveCareRecovery=0.9;        % probability of recovering when in intensive care  [0.0 1.0]
-        IntensiveCareTime=10;             % time in days needing intensive care after being taken in intensive care
-        IsolationDuration=10; % time in days for someone being isolated at home ill or not
+        vacc=0.0;                       % probability of successfully vaccinating a person [0.0 1.0]
+        IntensiveCare=0.01;             % probability of needing intensive care when infected [0.0 1.0]
+        IntensiveCareTime=10;           % time in days needing intensive care after being taken in intensive care
+        IntensiveCareRecovery=0.995;     % probability of recovering when in intensive care  [0.0 1.0]
+        IsolationDuration=10;           % time in days for someone being isolated at home ill or not
         notisolation=0.9;               % probability of not isolating oneself when feeling ill or not
-        NumberOfAvailableIntensiveCareBedsPerDay=10;
+
         
         
         ns=[];
@@ -261,6 +259,7 @@ classdef Person  < handle
             else    
                 obj.a=ind;
             end
+            obj.a=1;
         end
 %%        
         function str=DisplayActions(obj)
@@ -324,7 +323,7 @@ classdef Person  < handle
                         v(k)=obj.IntensiveCare;
                         k=k+1;
                     end
-                    % becomming recovered (after end of period)
+                    % recovering (after end of period)
                     ti(k)=obj.nie;tj(k)=obj.nr;v(k)=1;k=k+1;
                     % staying recovered
                     ti(k)=obj.nr;tj(k)=obj.nr;v(k)=1;k=k+1;
@@ -344,7 +343,7 @@ classdef Person  < handle
                         k=k+1;
                     end
                     
-                    % becomming recovered (after end of period)
+                    % recovering (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nr;v(k)=obj.IntensiveCareRecovery;k=k+1;
                     % dying of the infection (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nd;v(k)=1-obj.IntensiveCareRecovery;k=k+1;
@@ -361,7 +360,7 @@ classdef Person  < handle
                         v(k)=obj.IntensiveCare;
                         k=k+1;
                     end
-                    % becomming recovered (after end of isolation)
+                    % recovering (after end of isolation)
                     % or still being infectious
                     d=obj.DiseaseDuration-obj.IsolationDuration;
                     if(d<=0)
@@ -405,7 +404,7 @@ classdef Person  < handle
                         v(k)=obj.IntensiveCare;
                         k=k+1;
                     end
-                    % becomming recovered (after end of period)
+                    % recovering (after end of period)
                     ti(k)=obj.nie;tj(k)=obj.nr;v(k)=1;k=k+1;
                     % staying recovered
                     ti(k)=obj.nr;tj(k)=obj.nr;v(k)=1;k=k+1;
@@ -425,7 +424,7 @@ classdef Person  < handle
                         k=k+1;
                     end
                     
-                    % becomming recovered (after end of period)
+                    % recovering (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nr;v(k)=obj.IntensiveCareRecovery;k=k+1;
                     % dying of the infection (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nd;v(k)=1-obj.IntensiveCareRecovery;k=k+1;
@@ -442,7 +441,7 @@ classdef Person  < handle
                         v(k)=obj.IntensiveCare;
                         k=k+1;
                     end
-                    % becomming recovered (after end of isolation)
+                    % recovering (after end of isolation)
                     % or still being infectious
                     d=obj.DiseaseDuration-obj.IsolationDuration;
                     if(d<=0)
@@ -508,7 +507,7 @@ classdef Person  < handle
                         k=k+1;
                     end
                     
-                    % becomming recovered (after end of period)
+                    % recovering (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nr;v(k)=obj.IntensiveCareRecovery;k=k+1;
                     % dying of the infection (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nd;v(k)=1-obj.IntensiveCareRecovery;k=k+1;
@@ -525,7 +524,7 @@ classdef Person  < handle
                         v(k)=obj.IntensiveCare;
                         k=k+1;
                     end
-                    % becomming recovered (after end of isolation)
+                    % recovering (after end of isolation)
                     % or still being infectious
                     d=obj.DiseaseDuration-obj.IsolationDuration;
                     if(d<=0)
@@ -568,7 +567,7 @@ classdef Person  < handle
                         v(k)=obj.IntensiveCare;
                         k=k+1;
                     end
-                    % becomming recovered (after end of period)
+                    % recovering (after end of period)
                     ti(k)=obj.nie;tj(k)=obj.nr;v(k)=1;k=k+1;
                     % staying recovered
                     ti(k)=obj.nr;tj(k)=obj.nr;v(k)=1;k=k+1;
@@ -588,7 +587,7 @@ classdef Person  < handle
                         k=k+1;
                     end
                     
-                    % becomming recovered (after end of period)
+                    % recovering (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nr;v(k)=obj.IntensiveCareRecovery;k=k+1;
                     % dying of the infection (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nd;v(k)=1-obj.IntensiveCareRecovery;k=k+1;
@@ -606,7 +605,7 @@ classdef Person  < handle
                         v(k)=obj.IntensiveCare;
                         k=k+1;
                     end
-                    % becomming recovered (after end of isolation)
+                    % recovering (after end of isolation)
                     % or still being infectious
                     d=obj.DiseaseDuration-obj.IsolationDuration;
                     if(d<=0)
@@ -647,7 +646,7 @@ classdef Person  < handle
                         v(k)=obj.IntensiveCare;
                         k=k+1;
                     end
-                    % becomming recovered (after end of period)
+                    % recovering (after end of period)
                     ti(k)=obj.nie;tj(k)=obj.nr;v(k)=1;k=k+1;
                     % staying recovered
                     ti(k)=obj.nr;tj(k)=obj.nr;v(k)=1;k=k+1;
@@ -667,7 +666,7 @@ classdef Person  < handle
                         k=k+1;
                     end
                     
-                    % becomming recovered (after end of period)
+                    % recovering (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nr;v(k)=obj.IntensiveCareRecovery;k=k+1;
                     % dying of the infection (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nd;v(k)=1-obj.IntensiveCareRecovery;k=k+1;
@@ -684,7 +683,7 @@ classdef Person  < handle
                         v(k)=obj.IntensiveCare;
                         k=k+1;
                     end
-                    % becomming recovered (after end of isolation)
+                    % recovering (after end of isolation)
                     % or still being infectious
                     d=obj.DiseaseDuration-obj.IsolationDuration;
                     if(d<=0)
@@ -1227,32 +1226,66 @@ classdef Person  < handle
                 end
             else
                 if(true)
-                    % isolation of susceptible is not nice
+                    %1    'do nothing'
+                    %2    'detect'
+                    %3    'vaccinate'
+                    %4    'isolate infectious'
+                    %5    'isolate susceptible'
+                    
+                    % reward should be b(p), i.e. belief of probability 
+                    % of getting infected dependent.
+                    % vaccination should be obj.vacc dependent
+                    
+                    % susceptible 
+                    obj.R(obj.ns,1)=0;
+                    obj.R(obj.ns,2)=0;
+                    obj.R(obj.ns,3)=obj.vacc;
+                    obj.R(obj.ns,4)=0;
                     obj.R(obj.ns,5)=0;
-                    % isolation an infectious is good
-                    obj.R(obj.nib:obj.nie,4)=1;
-                    % having susceptibles is good
-                    obj.R(obj.ns,1)=1;
-                    % having infectious is bad
+                    % infectious
                     obj.R(obj.nib:obj.nie,1)=0;
-                    
-                    
+                    obj.R(obj.nib:obj.nie,2)=2;
+                    obj.R(obj.nib:obj.nie,3)=0;
+                    obj.R(obj.nib:obj.nie,4)=5;
+                    obj.R(obj.nib:obj.nie,5)=0;
+                    % recovered 
+                    obj.R(obj.nr,1)=1;
+                    obj.R(obj.nr,2)=0;
+                    obj.R(obj.nr,3)=0;
+                    obj.R(obj.nr,4)=0;
+                    obj.R(obj.nr,5)=0;
+                    % vaccinated 
+                    obj.R(obj.nv,1)=1;
+                    obj.R(obj.nv,2)=0;
+                    obj.R(obj.nv,3)=0;
+                    obj.R(obj.nv,4)=0;
+                    obj.R(obj.nv,5)=0;
+                    % intensive care
+                    obj.R(obj.nitb:obj.nite,1)=1;
+                    obj.R(obj.nitb:obj.nite,2)=0;
+                    obj.R(obj.nitb:obj.nite,3)=0;
+                    obj.R(obj.nitb:obj.nite,4)=0;
+                    obj.R(obj.nitb:obj.nite,5)=0;
+                    % isolated infectious
+                    obj.R(obj.nisob:obj.nisoe,1)=1;
+                    obj.R(obj.nisob:obj.nisoe,2)=0;
+                    obj.R(obj.nisob:obj.nisoe,3)=0;
+                    obj.R(obj.nisob:obj.nisoe,4)=0;
+                    obj.R(obj.nisob:obj.nisoe,5)=0;
+                    % isolated susceptible
+                    obj.R(obj.nisosusb:obj.nisosuse,1)=1-obj.vacc;
+                    obj.R(obj.nisosusb:obj.nisosuse,2)=0;
+                    obj.R(obj.nisosusb:obj.nisosuse,3)=obj.vacc;
+                    obj.R(obj.nisosusb:obj.nisosuse,4)=0;
+                    obj.R(obj.nisosusb:obj.nisosuse,5)=0;
                     % dead is very bad
-                    for j=1:obj.na
-                        obj.R(obj.nd,j)=0;
-                    end
+                    obj.R(obj.nd,1)=1;
+                    obj.R(obj.nd,2)=0;
+                    obj.R(obj.nd,3)=0;
+                    obj.R(obj.nd,4)=0;
+                    obj.R(obj.nd,5)=0;
                     
-                    % intensive care is bad
-                    for i=obj.nitb:obj.nite
-                        for j=1:obj.na
-                            obj.R(i,j)=0;
-                        end
-                    end
-                    % vaccinating someone who is vaccinated is stupid
-                    obj.R(obj.nv,3)=-1;
-                    % vaccinating someone who is susceptible is good
-                    obj.R(obj.ns,3)=0;
-                    
+                    %obj.R(:,:)=0;
                 end
             end        
         end
