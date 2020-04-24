@@ -2,6 +2,8 @@
 Matlab Toolbox for disease control using partially observable decision 
 process framework for action selection
 
+[![View sir_pomdp on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://de.mathworks.com/matlabcentral/fileexchange/75165-sir_pomdp)
+
 ## Why?
 
 During the Corona pandemic in 2020 with no vaccine available several 

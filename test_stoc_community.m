@@ -1,13 +1,13 @@
 function  [S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_community(DNA)
-%TEST_STOC_COMMUNITY stochastic simulation of a community
+%TEST_STOC_COMMUNITY test routine for stochastic simulation of a community
 %   Driver routine for simulating the spread of a disease within a 
 %   community of people using many realistations of the function
 %
-%    test_community
+%    stoc_community
 % 
 %   to build averages.
 %
-%  usage:  S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_community([DNA])
+%  usage:  [S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_community([DNA])
 %
 %      where DNA sets the reward matrix in the class Person
 %      DNA con be used to interface the code using a genetic algorithm.
@@ -25,9 +25,6 @@ switch(nargin)
       PLOT=true;
 end
 
-M=6;      % realisations  
-N=1000;   % PopulationSize
-steps=30; % time steps
 
 p=Person(0);
 p.ConsistencyCheck;
@@ -35,24 +32,7 @@ p.ConsistencyCheck;
 %DNA=3*rand(1,p.GetNumberOfActions*p.GetNumberOfStates);
 %DNA=round(DNA);
 
-S=zeros(M,steps);   % susecptible
-I=zeros(M,steps);   % infectious
-R=zeros(M,steps);   % recovered
-V=zeros(M,steps);   % vaccinated
-ISO=zeros(M,steps); % isolated
-D=zeros(M,steps);   % dead
-ICA=zeros(M,steps); % intensive care
-REWARD=zeros(M,steps); % total reward
-
-if(license('test','Distrib_Computing_Toolbox'))
-    parfor i=1:M
-       [S(i,:),I(i,:),R(i,:),V(i,:),ISO(i,:),D(i,:),ICA(i,:),REWARD(i,:)]=test_community(N,steps,DNA);
-    end
-else
-    for i=1:M
-       [S(i,:),I(i,:),R(i,:),V(i,:),ISO(i,:),D(i,:),ICA(i,:),REWARD(i,:)]=test_community(N,steps,DNA);
-    end
-end
+[S,I,R,V,ISO,D,ICA,REWARD] = stoc_community(DNA);
 
 if(PLOT)
     phi=-20;
