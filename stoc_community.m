@@ -19,13 +19,11 @@ function  [S,I,R,V,ISO,D,ICA,REWARD] = stoc_community(DNA)
 switch(nargin)
     case 1
       
-      PLOT=false;
     otherwise
       DNA=[];
-      PLOT=true;
 end
 
-M=6;      % realisations  
+M=12;      % realisations  
 N=1000;   % PopulationSize
 steps=30; % time steps
 

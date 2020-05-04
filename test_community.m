@@ -11,10 +11,13 @@ switch(nargin)
     case 1
       steps=30;
       DNA=[];
-      PLOT=false;
+      PLOT=true;
     case 2
       DNA=[];
-      PLOT=false; 
+      PLOT=true;
+    case 3
+      PLOT=true;
+
     otherwise
       N=1000;    % PopulationSize
       steps=30;     % time steps  

@@ -19,7 +19,7 @@ function  [S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_community(DNA)
 switch(nargin)
     case 1
       
-      PLOT=false;
+      PLOT=true;
     otherwise
       DNA=[];
       PLOT=true;

@@ -31,7 +31,7 @@ classdef Person  < handle
         IncubationPeriod=5;             % number of days of after infection, when symptoms show   Covid-19:  mean 5 days 2 to 20 days
         LatentPeriod=5;                 % number of days from infection to being infectious
         DiseaseDuration=10;             % duration in days of having no pathogens after infection
-        vacc=1.0;                       % probability of successfully vaccinating a person [0.0 1.0]
+        vacc=0.0;                       % probability of successfully vaccinating a person [0.0 1.0]
         IntensiveCare=0.01;             % probability of needing intensive care when infected [0.0 1.0]
         IntensiveCareTime=10;           % time in days needing intensive care after being taken in intensive care
         IntensiveCareRecovery=0.995;     % probability of recovering when in intensive care  [0.0 1.0]
