@@ -42,8 +42,14 @@ if(PLOT)
     set(gcf,'Name','evolution of a community (averaged)')
     clf
     subplot(9,1,1)
-    
-    
+     set(gca,'Visible','off')
+    txt=p.GetParameters;
+    l=length(txt);
+    n=ceil(l/2);
+    txt1=txt(1:n);
+    txt2=txt(n+1:l);
+    text(0.1,0.5,txt1,'FontSize',14)
+    text(0.6,0.5,txt2,'FontSize',14)
     
     subplot(9,1,2)
     hold on

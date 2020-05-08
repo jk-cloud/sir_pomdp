@@ -1,22 +1,22 @@
 classdef Person  < handle
-    %PERSON class for POMDP 
+    %PERSON class for POMDP
     %   The Person Class can be used simulate the state transition
     %   of a single person
-    %   Initialization 
+    %   Initialization
     %
     %   P= Person(prob of getting infected)
     %   P= Person(0.1)
     %
-    %   
+    %
     %   available states
     %   P.DisplayTransitionIndizes
-    %  
+    %
     %   available observations
     %   P.DisplayObservationIndizes
     %
     %   available actions
     %   P.DisplayActions
-    %  
+    %
     
     %
     %  (c) 2020 Jens Kappey and the sir_pomdp contributors.
@@ -24,21 +24,19 @@ classdef Person  < handle
     properties
         Name = []
     end
- %%   
+    %%
     properties(SetAccess=protected)
         notdetect=.99;                  % probability of not detecting the infectious state correctly without a test set [0.0 1.0]
         notdetectTestSet=0.2;           % probability of not detecting the infectious state correctly with a test set [0.0 1.0]
         IncubationPeriod=5;             % number of days of after infection, when symptoms show   Covid-19:  mean 5 days 2 to 20 days
-        LatentPeriod=5;                 % number of days from infection to being infectious
         DiseaseDuration=10;             % duration in days of having no pathogens after infection
-        vacc=0.0;                       % probability of successfully vaccinating a person [0.0 1.0]
+        vacc=0.99;                       % probability of successfully vaccinating a person [0.0 1.0]
         IntensiveCare=0.01;             % probability of needing intensive care when infected [0.0 1.0]
         IntensiveCareTime=10;           % time in days needing intensive care after being taken in intensive care
         IntensiveCareRecovery=0.995;     % probability of recovering when in intensive care  [0.0 1.0]
         IsolationDuration=10;           % time in days for someone being isolated at home ill or not
-        notisolation=0.9;               % probability of not isolating oneself when feeling ill or not
-
-        
+        notisolationSus=0.5;               % probability of not isolating oneself when susceptible
+        notisolationInf=0.01;               % probability of not isolating oneself when infectious
         
         ns=[];
         nib=[];
@@ -85,23 +83,23 @@ classdef Person  < handle
         
         DNA=[];
         
-        vectorize=false; % should be set to false. The alternative code is 
-                         % much slower
+        vectorize=false; % should be set to false. The alternative code is
+        % much slower
     end
     
     methods
-%%        
+        %%
         function obj = Person(p,DNA)
             %PERSON Construct an instance of this class
-            %   
+            %
             switch nargin
-                case 1                 
+                case 1
                     obj.p = p;
-           
+                    
                 case 2
                     obj.Name = "Person";
                     obj.DNA=DNA;
-
+                    
                 otherwise
                     obj.p=0.01;
                     
@@ -109,7 +107,7 @@ classdef Person  < handle
             obj.Name = "Person";
             obj.Properties;
         end
-%%        
+        %%
         function obj = Properties(obj)
             obj.ns=1;
             obj.nib=2;
@@ -146,7 +144,7 @@ classdef Person  < handle
             obj.reward=0;
             obj.InitRewardMatrix;
         end
-%%        
+        %%
         function str = DisplayTransitionIndizes(obj)
             i=1;
             str{i}=sprintf('susceptible: %i',obj.ns);i=i+1;
@@ -166,7 +164,7 @@ classdef Person  < handle
             end
             
         end
-%%     
+        %%
         function str = DisplayObservationIndizes(obj)
             i=1;
             str{i}=sprintf('obs susceptible: %i',obj.ons);i=i+1;
@@ -181,7 +179,7 @@ classdef Person  < handle
                 disp(str{k})
             end
         end
-  %%      
+        %%
         function [ind]=CompileIndizesWithRandomComponent(obj,col,T)
             I=spones(T);
             ri=find(sum(I,2)>1);
@@ -197,7 +195,7 @@ classdef Person  < handle
             end
         end
         
-  %%      
+        %%
         function R = CompileRandomMatrix(obj,ti,tj,indr,M,N)
             
             [m,n]=size(indr);
@@ -218,7 +216,7 @@ classdef Person  < handle
             
         end
         
- %%       
+        %%
         function C=CompileStateChange(obj,T,R,M,N)
             % find the largest negative element row-wise
             
@@ -239,44 +237,37 @@ classdef Person  < handle
                     m(i)=ind(k);
                 end
             end
-                      
-            C=sparse(l,m,ones(size(l)),M,N);    
+            
+            C=sparse(l,m,ones(size(l)),M,N);
         end
-                
- %%       
+        
+        %%
         function obj=FindAction(obj)
             % greedy algorithm
             Q=zeros(1,obj.na);
             for i=1:obj.na
-               Q(i)=obj.R(:,i)'*obj.b;
+                Q(i)=obj.R(:,i)'*obj.b;
             end
             ind=find(max(Q)==Q);
             m=length(ind);
             if(m>1)
                 r=rand(1,m);
                 [~,i]=min(r);
-                obj.a=ind(i);   
-            else    
+                obj.a=ind(i);
+            else
                 obj.a=ind;
             end
         end
-%%        
+        %%
         function str=DisplayActions(obj)
-            i=1;
-            str{i}=sprintf('do nothing');i=i+1;
-            str{i}=sprintf('detect');i=i+1;
-            str{i}=sprintf('vaccinate');i=i+1;
-            str{i}=sprintf('isolate infectious');i=i+1;
-            str{i}=sprintf('isolate susceptible');i=i+1;
             
-            for k=1:i-1
+            str=obj.GetActions;
+            
+            for k=1:length(str)
                 disp(str{k})
             end
-            if( (i-1) ~= obj.na)
-                warning('wrong number of possible action obj.na=%i',obj.na);
-            end
         end
-%%  
+        %%
         function str=GetActions(obj)
             i=1;
             str{i}=sprintf('do nothing');i=i+1;
@@ -285,12 +276,40 @@ classdef Person  < handle
             str{i}=sprintf('isolate infectious');i=i+1;
             str{i}=sprintf('isolate susceptible');i=i+1;
             
-
+            
             if( (i-1) ~= obj.na)
                 warning('wrong number of possible action obj.na=%i',obj.na);
             end
         end
-%%    
+        
+        %%
+        function str=GetParameters(obj)
+            
+            i=1;
+            str{i}=sprintf('disease duration %i days',obj.DiseaseDuration);i=i+1;
+            str{i}=sprintf('incubation period %i days',obj.IncubationPeriod);i=i+1;
+            str{i}=sprintf('probability of needing intensive care when infected : %.1f%%',100*obj.IntensiveCare);i=i+1;
+            str{i}=sprintf('probability of dying in intensive care : %.1f%%',100*(1-obj.IntensiveCareRecovery));i=i+1;
+            str{i}=sprintf('days in intensive care : %i ',obj.IntensiveCareTime);i=i+1;
+            str{i}=sprintf('probability of not detecting an infectious state wo   test set: %.1f%%',100*obj.notdetect);i=i+1;
+            str{i}=sprintf('probability of not detecting an infectious state with test set: %.1f%%',100*obj.notdetectTestSet);i=i+1;
+            str{i}=sprintf('probability of sucessful vaccination: %.1f%%',100*obj.vacc);i=i+1;
+            str{i}=sprintf('days in isolation : %i ',obj.IsolationDuration);i=i+1;
+            str{i}=sprintf('probability of leaving isolation when susceptible: %.1f%%',100*(obj.notisolationSus));i=i+1;
+            str{i}=sprintf('probability of leaving isolation when infectious: %.1f%%',100*(obj.notisolationInf));i=i+1;
+
+        end
+        %%
+        function str=DisplayParameters(obj)
+            
+            str=obj.GetParameters;
+            
+            for k=1:length(str)
+                disp(str{k})
+            end
+        end
+        
+        %%
         function obj=UpdatePerson(obj,p)
             obj.p=p;
             obj.UpdateState;
@@ -300,7 +319,7 @@ classdef Person  < handle
             obj.UpdateReward;
         end
         
-%%      
+        %%
         function obj=UpdateState(obj)
             v=[];ti=[];tj=[];
             switch(obj.a)
@@ -590,7 +609,7 @@ classdef Person  < handle
                     ti(k)=obj.nite;tj(k)=obj.nr;v(k)=obj.IntensiveCareRecovery;k=k+1;
                     % dying of the infection (after end of period)
                     ti(k)=obj.nite;tj(k)=obj.nd;v(k)=1-obj.IntensiveCareRecovery;k=k+1;
-
+                    
                     % isolation infected
                     for l=1:obj.IsolationDuration
                         ti(k)=obj.nisob+(l-1);
@@ -627,7 +646,7 @@ classdef Person  < handle
                     
                     obj.T{obj.a}=sparse(ti,tj,v,obj.n,obj.n);
                     
-                 case 5 % isolate susceptible
+                case 5 % isolate susceptible
                     k=1;
                     % getting infected or not
                     ti(k)=obj.ns;tj(k)=obj.nisosusb;v(k)=1;    k=k+1;
@@ -716,9 +735,9 @@ classdef Person  < handle
                 indr=obj.CompileIndizesWithRandomComponent(ti,obj.T{obj.a});
                 R = obj.CompileRandomMatrix(ti,tj,indr,obj.n,obj.n);
                 obj.TR = obj.CompileStateChange(obj.T{obj.a},R,obj.n,obj.n);
-            
+                
                 obj.s=obj.TR'*obj.s;
-      
+                
             else
                 % compute a realisation only for the row of the transition
                 % matrix that corresponds to the actual state
@@ -733,16 +752,16 @@ classdef Person  < handle
                         r=r-obj.T{obj.a}(i,ind(j));
                     end
                     obj.s=zeros(size(obj.s));
-                    obj.s(ind(j))=1; 
+                    obj.s(ind(j))=1;
                 else
                     obj.s=zeros(size(obj.s));
-                    obj.s(ind)=1;  
+                    obj.s(ind)=1;
                 end
             end
-
+            
             
         end
- %%       
+        %%
         function obj=UpdateObservation(obj)
             v=[];oi=[];oj=[];
             switch(obj.a)
@@ -809,10 +828,10 @@ classdef Person  < handle
                     end
                     % last isolation day
                     oi(k)=obj.nisosuse;oj(k)=obj.oniso;v(k)=1;k=k+1;
-
-  
+                    
+                    
                     obj.O{obj.a}=sparse(oi,oj,v,obj.n,obj.no);
-
+                    
                     
                 case 2 % detect
                     k=1;
@@ -879,8 +898,8 @@ classdef Person  < handle
                     oi(k)=obj.nisosuse;oj(k)=obj.oniso;v(k)=1;k=k+1;
                     
                     obj.O{obj.a}=sparse(oi,oj,v,obj.n,obj.no);
-
-                                        
+                    
+                    
                 case 3 % vaccinate
                     k=1;
                     %  susceptible
@@ -943,7 +962,7 @@ classdef Person  < handle
                     
                     
                     obj.O{obj.a}=sparse(oi,oj,v,obj.n,obj.no);
-
+                    
                     
                 case 4 % isolate infectious
                     k=1;
@@ -1012,7 +1031,7 @@ classdef Person  < handle
                     
                     obj.O{obj.a}=sparse(oi,oj,v,obj.n,obj.no);
                     
-                   case 5 % isolate susceptible
+                case 5 % isolate susceptible
                     k=1;
                     %  susceptible
                     oi(k)=obj.ons;oj(k)=obj.ons;v(k)=0.98;    k=k+1;
@@ -1078,7 +1097,7 @@ classdef Person  < handle
                     oi(k)=obj.nisosuse;oj(k)=obj.oniso;v(k)=1;k=k+1;
                     
                     obj.O{obj.a}=sparse(oi,oj,v,obj.n,obj.no);
-         
+                    
             end
             
             if(obj.vectorize)
@@ -1101,16 +1120,16 @@ classdef Person  < handle
                         r=r-obj.O{obj.a}(i,ind(j));
                     end
                     obj.z=zeros(size(obj.z));
-                    obj.z(ind(j))=1; 
+                    obj.z(ind(j))=1;
                 else
                     obj.z=zeros(size(obj.z));
-                    obj.z(ind)=1;  
+                    obj.z(ind)=1;
                 end
-
+                
             end
-
+            
         end
- %%       
+        %%
         function obj=UpdateBelief(obj)
             W=obj.O{obj.a}(:,find(obj.z)).*obj.T{obj.a}';
             bs=W*obj.b;
@@ -1141,14 +1160,14 @@ classdef Person  < handle
         
         
         function status=IsSusceptible(obj)
-           if(obj.s(obj.ns)==1)
-               status=true;
-           else
-               status=false;
-           end
+            if(obj.s(obj.ns)==1)
+                status=true;
+            else
+                status=false;
+            end
         end
         
-%%        
+        %%
         function status=SpreadsInfection(obj)
             i=find(obj.s);
             if( (i>=obj.nib && i<=obj.nie) )
@@ -1157,7 +1176,7 @@ classdef Person  < handle
                 status=false;
             end
         end
- %%       
+        %%
         function status=IsInfectious(obj)
             i=find(obj.s);
             if( (i>=obj.nisob && i<=obj.nisoe) || (i>=obj.nib && i<=obj.nie) )
@@ -1166,31 +1185,31 @@ classdef Person  < handle
                 status=false;
             end
         end
- %%       
+        %%
         function status=IsRecovered(obj)
-           if(obj.s(obj.nr)==1)
-               status=true;
-           else
-               status=false;
-           end
+            if(obj.s(obj.nr)==1)
+                status=true;
+            else
+                status=false;
+            end
         end
-%%      
+        %%
         function status=IsVaccinated(obj)
-           if(obj.s(obj.nv)==1)
-               status=true;
-           else
-               status=false;
-           end
+            if(obj.s(obj.nv)==1)
+                status=true;
+            else
+                status=false;
+            end
         end
-%%      
+        %%
         function status=IsDead(obj)
-           if(obj.s(obj.nd)==1)
-               status=true;
-           else
-               status=false;
-           end
+            if(obj.s(obj.nd)==1)
+                status=true;
+            else
+                status=false;
+            end
         end
-%%        
+        %%
         function status=IsInIntensiveCare(obj)
             i=find(obj.s);
             if(i>=obj.nitb && i<=obj.nite)
@@ -1199,7 +1218,7 @@ classdef Person  < handle
                 status=false;
             end
         end
- %%       
+        %%
         function status=IsInIsolation(obj)
             i=find(obj.s);
             if( (i>=obj.nisob && i<=obj.nisoe) ||  (i>=obj.nisosusb && i<=obj.nisosuse))
@@ -1208,7 +1227,7 @@ classdef Person  < handle
                 status=false;
             end
         end
- %%       
+        %%
         function obj=InitRewardMatrix(obj)
             % R(state,action)
             obj.R=zeros(obj.n,obj.na);
@@ -1217,11 +1236,11 @@ classdef Person  < handle
                 if(length(obj.DNA)==obj.na*obj.n)
                     for i=1:obj.n
                         for j=1:obj.na
-                           obj.R(i,j)=obj.DNA((i-1)*obj.na+j);  
+                            obj.R(i,j)=obj.DNA((i-1)*obj.na+j);
                         end
-                    end 
+                    end
                 else
-                   error('wrong genom size in reward matrix initialization'); 
+                    error('wrong genom size in reward matrix initialization');
                 end
             else
                 if(true)
@@ -1231,11 +1250,11 @@ classdef Person  < handle
                     %4    'isolate infectious'
                     %5    'isolate susceptible'
                     
-                    % reward should be b(p), i.e. belief of probability 
+                    % reward should be b(p), i.e. belief of probability
                     % of getting infected dependent.
                     % vaccination should be obj.vacc dependent
                     
-                    % susceptible 
+                    % susceptible
                     obj.R(obj.ns,1)=0;
                     obj.R(obj.ns,2)=0;
                     obj.R(obj.ns,3)=obj.vacc;
@@ -1247,13 +1266,13 @@ classdef Person  < handle
                     obj.R(obj.nib:obj.nie,3)=0;
                     obj.R(obj.nib:obj.nie,4)=5;
                     obj.R(obj.nib:obj.nie,5)=0;
-                    % recovered 
+                    % recovered
                     obj.R(obj.nr,1)=1;
                     obj.R(obj.nr,2)=0;
                     obj.R(obj.nr,3)=0;
                     obj.R(obj.nr,4)=0;
                     obj.R(obj.nr,5)=0;
-                    % vaccinated 
+                    % vaccinated
                     obj.R(obj.nv,1)=1;
                     obj.R(obj.nv,2)=0;
                     obj.R(obj.nv,3)=0;
@@ -1286,55 +1305,55 @@ classdef Person  < handle
                     
                     %obj.R(:,:)=0;
                 end
-            end        
+            end
         end
         
-  %%      
+        %%
         function obj=DisplayRewardMatrix(obj)
-           figure
-           clf
-           str=obj.DisplayActions;
-           for i=1:obj.na
-              subplot(obj.na,1,i)
-              plot(obj.R(:,i))
-              title(str{i})
-              xlabel('state')
-              ylabel('reward')
-           end
+            figure
+            clf
+            str=obj.DisplayActions;
+            for i=1:obj.na
+                subplot(obj.na,1,i)
+                plot(obj.R(:,i))
+                title(str{i})
+                xlabel('state')
+                ylabel('reward')
+            end
         end
- %%       
+        %%
         function obj=UpdateReward(obj)
-           obj.reward=obj.reward+obj.R(find(obj.s),obj.a); 
+            obj.reward=obj.reward+obj.R(find(obj.s),obj.a);
         end
- %%            
+        %%
         function obj=ConsistencyCheck(obj)
-           a_save=obj.a;
-           for i=1:obj.na
-               obj.a=i;
-               obj.UpdateState;
-               tp=sum(obj.T{obj.a},2);
-               if(find(tp~=1))
-                   figure
-                   clf
-                   subplot(2,1,1)
-                   plot(tp)
-                   subplot(2,1,2)
-                   spy(obj.T{obj.a})
-                   error('transition probabilities do not add up to 1 (a=%i)',obj.a)
-               end
-               obj.UpdateObservation;
-               op=sum(obj.O{obj.a},2);
-               if(find(op~=1))
-                   figure
-                   clf
-                   subplot(2,1,1)
-                   plot(op)
-                   subplot(2,1,2)
-                   spy(obj.O{obj.a})
-                   error('observation probabilities do not add up to 1 (a=%i)',obj.a)
-               end
-           end
-           obj.a=a_save; 
+            a_save=obj.a;
+            for i=1:obj.na
+                obj.a=i;
+                obj.UpdateState;
+                tp=sum(obj.T{obj.a},2);
+                if(find(tp~=1))
+                    figure
+                    clf
+                    subplot(2,1,1)
+                    plot(tp)
+                    subplot(2,1,2)
+                    spy(obj.T{obj.a})
+                    error('transition probabilities do not add up to 1 (a=%i)',obj.a)
+                end
+                obj.UpdateObservation;
+                op=sum(obj.O{obj.a},2);
+                if(find(op~=1))
+                    figure
+                    clf
+                    subplot(2,1,1)
+                    plot(op)
+                    subplot(2,1,2)
+                    spy(obj.O{obj.a})
+                    error('observation probabilities do not add up to 1 (a=%i)',obj.a)
+                end
+            end
+            obj.a=a_save;
         end
         
     end
