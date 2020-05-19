@@ -7,11 +7,11 @@ function  [S,I,R,V,ISO,D,ICA,REWARD] = stoc_community(DNA)
 % 
 %   to build averages.
 %
-%  usage:  S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_community([DNA])
+%  usage:  [S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_community([DNA])
 %
 %      where DNA sets the reward matrix in the class Person
 %      DNA con be used to interface the code using a genetic algorithm.
-%      in order to optimze the reward matrix.s
+%      in order to optimze the reward matrix.
 
 %
 %  (c) 2020 Jens Kappey and the sir_pomdp contributors.
@@ -25,7 +25,7 @@ end
 
 M=12;      % realisations  
 N=1000;   % PopulationSize
-steps=30; % time steps
+steps=60; % time steps
 
 p=Person(0);
 p.ConsistencyCheck;
