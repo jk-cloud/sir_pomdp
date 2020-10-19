@@ -19,8 +19,8 @@ switch(nargin)
       PLOT=true;
 
     otherwise
-      N=1000;    % PopulationSize
-      steps=30;     % time steps  
+      N=10000;    % PopulationSize
+      steps=60;     % time steps  
       DNA=[];
       PLOT=true;
 end

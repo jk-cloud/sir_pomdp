@@ -26,17 +26,17 @@ classdef Person  < handle
     end
     %%
     properties(SetAccess=protected)
-        notdetect=.99;                  % probability of not detecting the infectious state correctly without a test set [0.0 1.0]
+        notdetect=.999;                  % probability of not detecting the infectious state correctly without a test set [0.0 1.0]
         notdetectTestSet=0.2;           % probability of not detecting the infectious state correctly with a test set [0.0 1.0]
         IncubationPeriod=5;             % number of days of after infection, when symptoms show   Covid-19:  mean 5 days 2 to 20 days
         DiseaseDuration=10;             % duration in days of having no pathogens after infection
-        vacc=0.99;                       % probability of successfully vaccinating a person [0.0 1.0]
+        vacc=0.0;                       % probability of successfully vaccinating a person [0.0 1.0]
         IntensiveCare=0.01;             % probability of needing intensive care when infected [0.0 1.0]
         IntensiveCareTime=10;           % time in days needing intensive care after being taken in intensive care
         IntensiveCareRecovery=0.995;     % probability of recovering when in intensive care  [0.0 1.0]
         IsolationDuration=10;           % time in days for someone being isolated at home ill or not
-        notisolationSus=0.5;               % probability of not isolating oneself when susceptible
-        notisolationInf=0.01;               % probability of not isolating oneself when infectious
+        notisolationSus=0.0;               % probability of not isolating oneself when susceptible
+        notisolationInf=0.0;               % probability of not isolating oneself when infectious ... TODO not implemented yet
         
         ns=[];
         nib=[];
@@ -390,7 +390,14 @@ classdef Person  < handle
                     for l=1:obj.IsolationDuration
                         ti(k)=obj.nisosusb+(l-1);
                         tj(k)=obj.nisosusb+l;
-                        v(k)=1;
+                        v(k)=1-obj.notisolationSus;
+                        k=k+1;
+                    end
+                    % leaving isolation susceptible
+                    for l=1:obj.IsolationDuration
+                        ti(k)=obj.nisosusb+(l-1);
+                        tj(k)=obj.ns;
+                        v(k)=obj.notisolationSus;
                         k=k+1;
                     end
                     %  back to the susceptible pool
@@ -471,7 +478,14 @@ classdef Person  < handle
                     for l=1:obj.IsolationDuration
                         ti(k)=obj.nisosusb+(l-1);
                         tj(k)=obj.nisosusb+l;
-                        v(k)=1;
+                        v(k)=1-obj.notisolationSus;
+                        k=k+1;
+                    end
+                    % leaving isolation susceptible
+                    for l=1:obj.IsolationDuration
+                        ti(k)=obj.nisosusb+(l-1);
+                        tj(k)=obj.ns;
+                        v(k)=obj.notisolationSus;
                         k=k+1;
                     end
                     %  back to the susceptible pool
@@ -554,7 +568,14 @@ classdef Person  < handle
                     for l=1:obj.IsolationDuration
                         ti(k)=obj.nisosusb+(l-1);
                         tj(k)=obj.nisosusb+l;
-                        v(k)=1;
+                        v(k)=1-obj.notisolationSus;
+                        k=k+1;
+                    end
+                    % leaving isolation susceptible
+                    for l=1:obj.IsolationDuration
+                        ti(k)=obj.nisosusb+(l-1);
+                        tj(k)=obj.ns;
+                        v(k)=obj.notisolationSus;
                         k=k+1;
                     end
                     %  back to the susceptible pool
@@ -635,7 +656,14 @@ classdef Person  < handle
                     for l=1:obj.IsolationDuration
                         ti(k)=obj.nisosusb+(l-1);
                         tj(k)=obj.nisosusb+l;
-                        v(k)=1;
+                        v(k)=1-obj.notisolationSus;
+                        k=k+1;
+                    end
+                    % leaving isolation susceptible
+                    for l=1:obj.IsolationDuration
+                        ti(k)=obj.nisosusb+(l-1);
+                        tj(k)=obj.ns;
+                        v(k)=obj.notisolationSus;
                         k=k+1;
                     end
                     %  back to the susceptible pool
@@ -713,7 +741,14 @@ classdef Person  < handle
                     for l=1:obj.IsolationDuration
                         ti(k)=obj.nisosusb+(l-1);
                         tj(k)=obj.nisosusb+l;
-                        v(k)=1;
+                        v(k)=1-obj.notisolationSus;
+                        k=k+1;
+                    end
+                    % leaving isolation susceptible
+                    for l=1:obj.IsolationDuration
+                        ti(k)=obj.nisosusb+(l-1);
+                        tj(k)=obj.ns;
+                        v(k)=obj.notisolationSus;
                         k=k+1;
                     end
                     %  back to the susceptible pool
@@ -765,74 +800,7 @@ classdef Person  < handle
         function obj=UpdateObservation(obj)
             v=[];oi=[];oj=[];
             switch(obj.a)
-                case 1
-                    k=1;
-                    %  susceptible
-                    oi(k)=obj.ons;oj(k)=obj.ons;v(k)=0.99;    k=k+1;
-                    oi(k)=obj.ons;oj(k)=obj.oni;v(k)=0.01;    k=k+1;
-                    % detecting an infected
-                    for l=1:obj.DiseaseDuration
-                        oi(k)=obj.nib+(l-1);
-                        oj(k)=obj.oni;
-                        v(k)=1-obj.notdetect;
-                        k=k+1;
-                    end
-                    for l=1:obj.DiseaseDuration
-                        oi(k)=obj.nib+(l-1);
-                        oj(k)=obj.ons;
-                        v(k)=0.5*obj.notdetect;
-                        k=k+1;
-                    end
-                    for l=1:obj.DiseaseDuration
-                        oi(k)=obj.nib+(l-1);
-                        oj(k)=obj.onr;
-                        v(k)=0.5*obj.notdetect;
-                        k=k+1;
-                    end
-                    oi(k)=obj.nie;oj(k)=obj.oni;v(k)=1-obj.notdetect;k=k+1;
-                    oi(k)=obj.nie;oj(k)=obj.ons;v(k)=0.5*obj.notdetect;k=k+1;
-                    oi(k)=obj.nie;oj(k)=obj.onr;v(k)=0.5*obj.notdetect;k=k+1;
-                    %  recovered
-                    oi(k)=obj.nr;oj(k)=obj.onr;v(k)=1.0;k=k+1;
-                    
-                    % vaccinated
-                    oi(k)=obj.nv;oj(k)=obj.onv;v(k)=0.8;k=k+1;
-                    oi(k)=obj.nv;oj(k)=obj.onr;v(k)=0.1;k=k+1;
-                    oi(k)=obj.nv;oj(k)=obj.ons;v(k)=0.1;k=k+1;
-                    
-                    % intensive care
-                    for l=1:obj.IntensiveCareTime
-                        oi(k)=obj.nitb+(l-1);
-                        oj(k)=obj.onic;
-                        v(k)=1;
-                        k=k+1;
-                    end
-                    oi(k)=obj.nite;oj(k)=obj.onic;v(k)=1;k=k+1;
-                    % dead
-                    oi(k)=obj.nd;oj(k)=obj.ond;v(k)=1;k=k+1;
-                    % isolation infected
-                    for l=1:obj.IsolationDuration
-                        oi(k)=obj.nisob+(l-1);
-                        oj(k)=obj.oniso;
-                        v(k)=1;
-                        k=k+1;
-                    end
-                    % last isolation day
-                    oi(k)=obj.nisoe;oj(k)=obj.oniso;v(k)=1;k=k+1;
-                    % isolation susceptible
-                    for l=1:obj.IsolationDuration
-                        oi(k)=obj.nisosusb+(l-1);
-                        oj(k)=obj.oniso;
-                        v(k)=1;
-                        k=k+1;
-                    end
-                    % last isolation day
-                    oi(k)=obj.nisosuse;oj(k)=obj.oniso;v(k)=1;k=k+1;
-                    
-                    
-                    obj.O{obj.a}=sparse(oi,oj,v,obj.n,obj.no);
-                    
-                    
+               
                 case 2 % detect
                     k=1;
                     %  susceptible
@@ -899,139 +867,8 @@ classdef Person  < handle
                     
                     obj.O{obj.a}=sparse(oi,oj,v,obj.n,obj.no);
                     
-                    
-                case 3 % vaccinate
-                    k=1;
-                    %  susceptible
-                    oi(k)=obj.ons;oj(k)=obj.ons;v(k)=0.99;    k=k+1;
-                    oi(k)=obj.ons;oj(k)=obj.oni;v(k)=0.01;    k=k+1;
-                    % detecting an infected
-                    for l=1:obj.DiseaseDuration
-                        oi(k)=obj.nib+(l-1);
-                        oj(k)=obj.oni;
-                        v(k)=1-obj.notdetect;
-                        k=k+1;
-                    end
-                    for l=1:obj.DiseaseDuration
-                        oi(k)=obj.nib+(l-1);
-                        oj(k)=obj.ons;
-                        v(k)=0.5*obj.notdetect;
-                        k=k+1;
-                    end
-                    for l=1:obj.DiseaseDuration
-                        oi(k)=obj.nib+(l-1);
-                        oj(k)=obj.onr;
-                        v(k)=0.5*obj.notdetect;
-                        k=k+1;
-                    end
-                    oi(k)=obj.nie;oj(k)=obj.oni;v(k)=1-obj.notdetect;k=k+1;
-                    oi(k)=obj.nie;oj(k)=obj.ons;v(k)=0.5*obj.notdetect;k=k+1;
-                    oi(k)=obj.nie;oj(k)=obj.onr;v(k)=0.5*obj.notdetect;k=k+1;
-                    %  recovered
-                    oi(k)=obj.nr;oj(k)=obj.onr;v(k)=1;k=k+1;
-                    % vaccinated
-                    oi(k)=obj.nv;oj(k)=obj.onv;v(k)=1;k=k+1;
-                    % intensive care
-                    for l=1:obj.IntensiveCareTime
-                        oi(k)=obj.nitb+(l-1);
-                        oj(k)=obj.onic;
-                        v(k)=1;
-                        k=k+1;
-                    end
-                    oi(k)=obj.nite;oj(k)=obj.onic;v(k)=1;k=k+1;
-                    % dead
-                    oi(k)=obj.nd;oj(k)=obj.ond;v(k)=1;k=k+1;
-                    % isolation
-                    for l=1:obj.IsolationDuration
-                        oi(k)=obj.nisob+(l-1);
-                        oj(k)=obj.oniso;
-                        v(k)=1;
-                        k=k+1;
-                    end
-                    % last isolation day
-                    oi(k)=obj.nisoe;oj(k)=obj.oniso;v(k)=1;k=k+1;
-                    % isolation susceptible
-                    for l=1:obj.IsolationDuration
-                        oi(k)=obj.nisosusb+(l-1);
-                        oj(k)=obj.oniso;
-                        v(k)=1;
-                        k=k+1;
-                    end
-                    % last isolation day
-                    oi(k)=obj.nisosuse;oj(k)=obj.oniso;v(k)=1;k=k+1;
-                    
-                    
-                    obj.O{obj.a}=sparse(oi,oj,v,obj.n,obj.no);
-                    
-                    
-                case 4 % isolate infectious
-                    k=1;
-                    %  susceptible
-                    oi(k)=obj.ons;oj(k)=obj.ons;v(k)=0.98;    k=k+1;
-                    oi(k)=obj.ons;oj(k)=obj.oni;v(k)=0.01;    k=k+1;
-                    oi(k)=obj.ons;oj(k)=obj.oniso;v(k)=0.01;    k=k+1;
-                    % detecting an infected
-                    for l=1:obj.DiseaseDuration
-                        oi(k)=obj.nib+(l-1);
-                        oj(k)=obj.oni;
-                        v(k)=1-obj.notdetect;
-                        k=k+1;
-                    end
-                    for l=1:obj.DiseaseDuration
-                        oi(k)=obj.nib+(l-1);
-                        oj(k)=obj.ons;
-                        v(k)=0.5*obj.notdetect;
-                        k=k+1;
-                    end
-                    for l=1:obj.DiseaseDuration
-                        oi(k)=obj.nib+(l-1);
-                        oj(k)=obj.onr;
-                        v(k)=0.5*obj.notdetect;
-                        k=k+1;
-                    end
-                    oi(k)=obj.nie;oj(k)=obj.oni;v(k)=1-obj.notdetect;k=k+1;
-                    oi(k)=obj.nie;oj(k)=obj.ons;v(k)=0.5*obj.notdetect;k=k+1;
-                    oi(k)=obj.nie;oj(k)=obj.onr;v(k)=0.5*obj.notdetect;k=k+1;
-                    %  recovered
-                    oi(k)=obj.nr;oj(k)=obj.onr;v(k)=1.0;k=k+1;
-                    % vaccinated
-                    oi(k)=obj.nv;oj(k)=obj.onv;v(k)=0.8;k=k+1;
-                    oi(k)=obj.nv;oj(k)=obj.onr;v(k)=0.1;k=k+1;
-                    oi(k)=obj.nv;oj(k)=obj.ons;v(k)=0.1;k=k+1;
-                    
-                    % intensive care
-                    for l=1:obj.IntensiveCareTime
-                        oi(k)=obj.nitb+(l-1);
-                        oj(k)=obj.onic;
-                        v(k)=1.0;
-                        k=k+1;
-                    end
-                    oi(k)=obj.nite;oj(k)=obj.onic;v(k)=1.0;k=k+1;
-                    
-                    %
-                    oi(k)=obj.nd;oj(k)=obj.ond;v(k)=1;k=k+1;
-                    % isolation
-                    for l=1:obj.IsolationDuration
-                        oi(k)=obj.nisob+(l-1);
-                        oj(k)=obj.oniso;
-                        v(k)=1;
-                        k=k+1;
-                    end
-                    % last isolation day
-                    oi(k)=obj.nisoe;oj(k)=obj.oniso;v(k)=1;k=k+1;
-                    % isolation susceptible
-                    for l=1:obj.IsolationDuration
-                        oi(k)=obj.nisosusb+(l-1);
-                        oj(k)=obj.oniso;
-                        v(k)=1;
-                        k=k+1;
-                    end
-                    % last isolation day
-                    oi(k)=obj.nisosuse;oj(k)=obj.oniso;v(k)=1;k=k+1;
-                    
-                    obj.O{obj.a}=sparse(oi,oj,v,obj.n,obj.no);
-                    
-                case 5 % isolate susceptible
+   
+                otherwise 
                     k=1;
                     %  susceptible
                     oi(k)=obj.ons;oj(k)=obj.ons;v(k)=0.98;    k=k+1;
