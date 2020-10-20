@@ -1,7 +1,7 @@
-function  [S,I,R,V,ISO,D,ICA,REWARD,A] = test_community(N,steps,DNA)
+function  [S,I,R,V,ISO,D,ICA,REWARD,A] = test_community(DNA)
 %TEST_COMMUNITY test routine for  community
 %
-%   usage:  [S,I,R,V,ISO,D,ICA,REWARD,A] = test_community(N,steps,[DNA])
+%   usage:  [S,I,R,V,ISO,D,ICA,REWARD,A] = test_community([DNA])
 
 %
 %  (c) 2020 Jens Kappey and the sir_pomdp contributors.
@@ -9,17 +9,12 @@ function  [S,I,R,V,ISO,D,ICA,REWARD,A] = test_community(N,steps,DNA)
 
 switch(nargin)
     case 1
-      steps=30;
-      DNA=[];
-      PLOT=true;
-    case 2
-      DNA=[];
-      PLOT=true;
-    case 3
+      N=1000;    % PopulationSize
+      steps=60;
       PLOT=true;
 
     otherwise
-      N=10000;    % PopulationSize
+      N=1000;    % PopulationSize
       steps=60;     % time steps  
       DNA=[];
       PLOT=true;
@@ -28,7 +23,13 @@ end
 P0=Person(0);
 P0.ConsistencyCheck;
 
-[S,I,R,V,ISO,D,ICA,REWARD,A] = community(N,steps,DNA);
+C = community(DNA);
+C.SetPopulationSize(N);
+C.SetSimulationSteps(steps);
+C.Initialize;
+C.Evolve;
+
+[S,I,R,V,ISO,D,ICA,REWARD,A] = C.ReturnResults;
 
 if(PLOT)
     phi=-20;

@@ -25,6 +25,10 @@ switch(nargin)
       PLOT=true;
 end
 
+M=12;      % realisations  
+N=1000;   % PopulationSize
+steps=30; % time steps
+
 
 p=Person(0);
 p.ConsistencyCheck;
@@ -32,7 +36,16 @@ p.ConsistencyCheck;
 %DNA=3*rand(1,p.GetNumberOfActions*p.GetNumberOfStates);
 %DNA=round(DNA);
 
-[S,I,R,V,ISO,D,ICA,REWARD] = stoc_community(DNA);
+C = community(DNA);
+C.SetPopulationSize(N);
+C.SetSimulationSteps(steps);
+C.SetNumberOfRealizations(M);
+C.Initialize;
+C.Evolve;
+
+[S,I,R,V,ISO,D,ICA,REWARD,A] = C.ReturnResults;
+
+
 
 if(PLOT)
     phi=-20;

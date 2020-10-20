@@ -1,4 +1,5 @@
-function  [S,I,R,V,ISO,D,ICA,REWARD,A] = community(N,steps,DNA)
+classdef community  < handle
+%  [S,I,R,V,ISO,D,ICA,REWARD,A] = community(N,steps,DNA)
 %COMMUNITY Simulating a community
 %   Driver routine for simulating the spread of a disease within a
 %   community of people.
@@ -21,113 +22,230 @@ function  [S,I,R,V,ISO,D,ICA,REWARD,A] = community(N,steps,DNA)
 %  (c) 2020 Jens Kappey and the sir_pomdp contributors.
 %
 
-switch nargin
-    case 1
-        steps=30;
-        DNA=[];
-        
-    case 2
-        DNA=[];
-        
-    case 3
-       
-        
-    otherwise
-        N=1000;       % PopulationSize
-        steps=30;     % time steps
-        DNA=[];
+
+properties
+    Name = []
 end
 
-P0=Person(0);
-P0.ConsistencyCheck;
-na=P0.GetNumberOfActions;
 
-S=zeros(1,steps);   % susecptible
-I=zeros(1,steps);   % infectious
-R=zeros(1,steps);   % recovered
-V=zeros(1,steps);   % vaccinated
-ISO=zeros(1,steps); % isolated
-D=zeros(1,steps);   % dead
-ICA=zeros(1,steps); % intensive care
-REWARD=zeros(1,steps); % total reward
-A=zeros(na,steps);  % actions
-
-
-%initialise community
-for i=1:N
-    P{i}=Person(0.01,DNA);
+properties(SetAccess=protected)
+    N=[]; % PopulationSize
+    M=[]; % number of simulation realizations
+    steps=[]; % time steps (days)
+    DNA=[];
+    S=[];   % susecptible
+    I=[];   % infectious
+    R=[];   % recovered
+    V=[];   % vaccinated
+    ISO=[]; % isolated
+    D=[];   % dead
+    ICA=[]; % intensive care
+    REWARD=[]; % total reward
+    A=[];  % actions
+    
+    P=[]; % list of persons
+    
+    C=[]; % contact matrix
+    ContactsPerDay =[];
 end
 
-% contact matrix
-ContactsPerDay=10;
-C=ceil(N*rand(N,ContactsPerDay));
-p=0.1*ones(1,N);
 
-% evolve
-for t=1:steps
-    % update
+
+methods
+    %%
+    function obj = community(DNA)
+        %Community Construct an instance of this class
+        %s
+        switch nargin
+            case 1
+                obj.DNA=DNA;
+
+            otherwise
+
+        end
+        obj.Name = "Community";
+        obj.Properties;
+        obj.M=1;
+    end
+    %%
+    function obj = Properties(obj)
+        obj.N=1000;
+        obj.steps=30;
+        obj.ContactsPerDay = 10;
+    end
+    %%
     
-    for i=1:N
-        P{i}.UpdatePerson(p(i));
+    function obj = SetPopulationSize(obj,N)
+        obj.N = N;
     end
     
-    %collect
-    sus=0; % susceptible
-    inf=0; % infectious
-    rec=0; % recovered
-    vac=0; % vaccinated
-    iso=0; % isolated
-    dea=0; % dead
-    inc=0; % intensive care
-    rew=0; % reward
-    
-    for i=1:N
-        if(P{i}.IsSusceptible)
-            sus=sus+1;
+    %
+    function obj = SetSimulationSteps(obj,steps)
+        obj.steps = steps;
+    end  
+    %
+    function obj = SetNumberOfRealizations(obj,M)
+        obj.M = M;
+    end  
+    %
+    function obj = Initialize(obj)
+        P0=Person(0);
+        P0.ConsistencyCheck;
+        na=P0.GetNumberOfActions;
+
+        obj.S=zeros(obj.M,obj.steps);   % susecptible
+        obj.I=zeros(obj.M,obj.steps);   % infectious
+        obj.R=zeros(obj.M,obj.steps);   % recovered
+        obj.V=zeros(obj.M,obj.steps);   % vaccinated
+        obj.ISO=zeros(obj.M,obj.steps); % isolated
+        obj.D=zeros(obj.M,obj.steps);   % dead
+        obj.ICA=zeros(obj.M,obj.steps); % intensive care
+        obj.REWARD=zeros(obj.M,obj.steps); % total reward
+        obj.A=zeros(na,obj.steps);  % actions
+        
+        %initialise community
+        for i=1:obj.N
+            obj.P{i}=Person(0.01,obj.DNA);
         end
-        if(P{i}.IsInfectious)
-            inf=inf+1;
-        end
-        if(P{i}.IsRecovered)
-            rec=rec+1;
-        end
-        if(P{i}.IsVaccinated)
-            vac=vac+1;
-        end
-        if(P{i}.IsInIsolation)
-            iso=iso+1;
-        end
-        if(P{i}.IsDead)
-            dea=dea+1;
-        end
-        if(P{i}.IsInIntensiveCare)
-            inc=inc+1;
-        end
-        rew=rew+P{i}.reward;
-        A(P{i}.a,t)=A(P{i}.a,t)+1;
+        
+        % contact matrix
+        obj.ContactsPerDay=10;
+        obj.C=ceil(obj.N*rand(obj.N,obj.ContactsPerDay));
+        
+        
     end
-    
-    S(t)=sus;   % susecptible
-    I(t)=inf;   % infectious
-    R(t)=rec;   % recovered
-    V(t)=vac;   % vaccinated
-    ISO(t)=iso; % isolated
-    D(t)=dea;   % dead
-    ICA(t)=inc; % intensive care
-    REWARD(t)=rew; % total reward
-    
-    
-    % update probabilities of getting infected
-    for i=1:N
-        p(i)=0;
-        for j=1:ContactsPerDay
-            if(P{C(i,j)}.SpreadsInfection)
-                p(i)=p(i)+1;
+    %
+    function obj = Evolve(obj)
+        P0=Person(0);
+        na=P0.GetNumberOfActions;
+        % evolve
+        M=obj.M;
+        S=zeros(M,obj.steps);   % susecptible
+        I=zeros(M,obj.steps);   % infectious
+        R=zeros(M,obj.steps);   % recovered
+        V=zeros(M,obj.steps);   % vaccinated
+        ISO=zeros(M,obj.steps); % isolated
+        D=zeros(M,obj.steps);   % dead
+        ICA=zeros(M,obj.steps); % intensive care
+        REWARD=zeros(M,obj.steps); % total reward
+        A=zeros(na,obj.steps);  % actions
+
+        if(M>1 && license('test','Distrib_Computing_Toolbox'))
+            parfor i=1:M
+                [S(i,:),I(i,:),R(i,:),V(i,:),ISO(i,:),D(i,:),ICA(i,:),REWARD(i,:),A]=obj.Evolution;
             end
-            p(i)=1-exp(-0.5*p(i)); % 30% probability of getting infected when meeting 7 infected per day
+        else
+            for i=1:M
+                [S(i,:),I(i,:),R(i,:),V(i,:),ISO(i,:),D(i,:),ICA(i,:),REWARD(i,:),A]=obj.Evolution;
+            end
         end
+        
+        obj.S = S;
+        obj.I = I;
+        obj.R = R;
+        obj.V =V;
+        obj.ISO = ISO;
+        obj.D =D;
+        objICA = ICA;
+        obj.REWARD =REWARD;
+        obj.A =A;
     end
     
+    function [S,I,R,V,ISO,D,ICA,REWARD,A] = ReturnResults(obj)
+       
+        S = obj.S;
+        I = obj.I;
+        R = obj.R;
+        V = obj.V;
+        ISO= obj.ISO;
+        D = obj.D;
+        ICA =obj.ICA;
+        REWARD = obj.REWARD;
+        A = obj.A;
+    end
+        
+    %
+    function [S,I,R,V,ISO,D,ICA,REWARD,A] = Evolution(obj)
+        P0=Person(0);
+        na=P0.GetNumberOfActions;
+        
+        S=zeros(1,obj.steps);   % susecptible
+        I=zeros(1,obj.steps);   % infectious
+        R=zeros(1,obj.steps);   % recovered
+        V=zeros(1,obj.steps);   % vaccinated
+        ISO=zeros(1,obj.steps); % isolated
+        D=zeros(1,obj.steps);   % dead
+        ICA=zeros(1,obj.steps); % intensive care
+        REWARD=zeros(1,obj.steps); % total reward
+        A=zeros(na,obj.steps);  % actions
+        p=0.1*ones(1,obj.N);
+        for t=1:obj.steps
+            % update
+            
+            for i=1:obj.N
+                obj.P{i}.UpdatePerson(p(i));
+            end
+            
+            %collect
+            sus=0; % susceptible
+            inf=0; % infectious
+            rec=0; % recovered
+            vac=0; % vaccinated
+            iso=0; % isolated
+            dea=0; % dead
+            inc=0; % intensive care
+            rew=0; % reward
+            
+            for i=1:obj.N
+                if(obj.P{i}.IsSusceptible)
+                    sus=sus+1;
+                end
+                if(obj.P{i}.IsInfectious)
+                    inf=inf+1;
+                end
+                if(obj.P{i}.IsRecovered)
+                    rec=rec+1;
+                end
+                if(obj.P{i}.IsVaccinated)
+                    vac=vac+1;
+                end
+                if(obj.P{i}.IsInIsolation)
+                    iso=iso+1;
+                end
+                if(obj.P{i}.IsDead)
+                    dea=dea+1;
+                end
+                if(obj.P{i}.IsInIntensiveCare)
+                    inc=inc+1;
+                end
+                rew=rew+obj.P{i}.reward;
+                obj.A(obj.P{i}.a,t)=obj.A(obj.P{i}.a,t)+1;
+            end
+            
+            S(t)=sus;   % susecptible
+            I(t)=inf;   % infectious
+            R(t)=rec;   % recovered
+            V(t)=vac;   % vaccinated
+            ISO(t)=iso; % isolated
+            D(t)=dea;   % dead
+            ICA(t)=inc; % intensive care
+            REWARD(t)=rew; % total reward
+            
+            
+            % update probabilities of getting infected
+            for i=1:obj.N
+                p(i)=0;
+                for j=1:obj.ContactsPerDay
+                    if(obj.P{obj.C(i,j)}.SpreadsInfection)
+                        p(i)=p(i)+1;
+                    end
+                    p(i)=1-exp(-0.5*p(i)); % 30% probability of getting infected when meeting 7 infected per day
+                end
+            end
+            
+        end
+    end
+
 end
 
 end

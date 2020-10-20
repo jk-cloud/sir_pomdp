@@ -11,9 +11,7 @@ tic;test_person(DNA);toc
 
 disp('test_community')
 tic;test_community;toc
-tic;test_community(100);toc
-tic;test_community(100,20);toc
-tic;test_community(100,20,DNA);toc
+tic;test_community(DNA);toc
 
 
 disp('test_stoc_community')

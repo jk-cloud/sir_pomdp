@@ -97,10 +97,11 @@ classdef Person  < handle
                     obj.p = p;
                     
                 case 2
-                    obj.Name = "Person";
+                    obj.p = p;
                     obj.DNA=DNA;
                     
                 otherwise
+                    
                     obj.p=0.01;
                     
             end
