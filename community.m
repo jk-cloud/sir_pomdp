@@ -47,6 +47,13 @@ properties(SetAccess=protected)
     
     C=[]; % contact matrix
     ContactsPerDay =[];
+    ages =[];  % ages of persons
+    NeedForIntensiveCareAge=[];     % interpolation vectors for intensive care
+    NeedForIntensiveCare=[];    
+    IntensiveCareTimeAge=[];
+    IntensiveCareTimeDays=[];
+    IntensiveCareRecoveryAge=[];
+    IntensiveCareRecoveryProb=[];
 end
 
 
@@ -103,10 +110,18 @@ methods
         obj.REWARD=zeros(obj.M,obj.steps); % total reward
         obj.A=zeros(na,obj.steps);  % actions
         
+        
+        
         %initialise community
+        obj.InitializeAges;
         for i=1:obj.N
-            obj.P{i}=Person(0.01,obj.DNA);
+            obj.P{i}=Person(0.01,obj.DNA,obj.ages(i));
+            obj.P{i}.SetNeedForIntensiveCareBasedOnAge(obj.NeedForIntensiveCareAge,obj.NeedForIntensiveCare);
+            obj.P{i}.SetIntensiveCareRecoveryBasedOnAge(obj.IntensiveCareRecoveryAge,obj.IntensiveCareRecoveryProb);
+            obj.P{i}.SetIntensiveCareTimeBasedOnAge(obj.IntensiveCareTimeAge,obj.IntensiveCareTimeDays);
+            obj.P{i}.SetParametersBasedOnAge;  
         end
+        
         
         % contact matrix
         obj.ContactsPerDay=10;
@@ -114,11 +129,27 @@ methods
         
         
     end
+    
+    %
+    function obj = InitializeAges(obj)
+       X = randn(1,obj.N);
+       X = X + min(X);
+       
+       obj.ages =  50*ones(1,obj.N);
+    end
+    %
+    function obj = PlotAges(obj)
+       plot(obj.ages) 
+    end
     %
     function obj = Evolve(obj)
         P0=Person(0);
         na=P0.GetNumberOfActions;
-        % evolve
+        % Evolve uses Evolution and assigns enough memory
+        % for the results.
+        % The results are copied back to class properties.
+        % This is clumsy but nececcessary due to the usage of the 
+        % parfor loop.
         M=obj.M;
         S=zeros(M,obj.steps);   % susecptible
         I=zeros(M,obj.steps);   % infectious
@@ -245,7 +276,23 @@ methods
             
         end
     end
-
+    %%
+    function obj=SetNeedForIntensiveCareBasedOnAge(obj,x,y)
+        obj.NeedForIntensiveCareAge = x;
+        obj.NeedForIntensiveCare    = y;
+    end
+    %%
+    function obj=SetIntensiveCareRecoveryBasedOnAge(obj,x,y)
+        obj.IntensiveCareRecoveryAge  = x;
+        obj.IntensiveCareRecoveryProb = y;
+    end
+    %%
+    function obj=SetIntensiveCareTimeBasedOnAge(obj,x,y)
+        obj.IntensiveCareTimeAge  = x;
+        obj.IntensiveCareTimeDays = y;
+    end
+    %%
+    
 end
 
 end

@@ -15,10 +15,19 @@ switch(nargin)
 
     otherwise
       N=1000;    % PopulationSize
-      steps=60;     % time steps  
+      steps=30;     % time steps  
       DNA=[];
       PLOT=true;
 end
+
+NeedForIntensiveCareAge=[1,20,50,100];
+NeedForIntensiveCare   =[0.001,0.001,0.01,0.1];
+IntensiveCareRecoveryAge=[1,20,50,100];
+IntensiveCareRecoveryProb=[0.99,0.95,0.9,0.6];
+IntensiveCareTimeAge=[1,20,35,50,100];
+IntensiveCareTimeDays=[10,11,12,15,25];
+
+
 
 P0=Person(0);
 P0.ConsistencyCheck;
@@ -26,10 +35,14 @@ P0.ConsistencyCheck;
 C = community(DNA);
 C.SetPopulationSize(N);
 C.SetSimulationSteps(steps);
+C.SetNeedForIntensiveCareBasedOnAge(NeedForIntensiveCareAge,NeedForIntensiveCare);
+C.SetIntensiveCareRecoveryBasedOnAge(IntensiveCareRecoveryAge,IntensiveCareRecoveryProb);
+C.SetIntensiveCareTimeBasedOnAge(IntensiveCareTimeAge,IntensiveCareTimeDays);
 C.Initialize;
 C.Evolve;
 
 [S,I,R,V,ISO,D,ICA,REWARD,A] = C.ReturnResults;
+
 
 if(PLOT)
     phi=-20;

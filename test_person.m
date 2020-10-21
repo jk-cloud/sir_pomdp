@@ -21,8 +21,20 @@ end
 DNA=[];
 status = false;
 
+age= round(100*rand(1));
+P=Person(0.1,DNA,age);
+% set age variable parameters
+NeedForIntensiveCareAge=[1,20,50,100];
+NeedForIntensiveCare   =[0.001,0.001,0.01,0.1];
+P.SetNeedForIntensiveCareBasedOnAge(NeedForIntensiveCareAge,NeedForIntensiveCare);
+IntensiveCareRecoveryAge=[1,20,50,100];
+IntensiveCareRecoveryProb=[0.99,0.95,0.9,0.6];
+P.SetIntensiveCareRecoveryBasedOnAge(IntensiveCareRecoveryAge,IntensiveCareRecoveryProb);
+IntensiveCareTimeAge=[1,20,35,50,100];
+IntensiveCareTimeDays=[10,11,12,15,25];
+P.SetIntensiveCareTimeBasedOnAge(IntensiveCareTimeAge,IntensiveCareTimeDays);
+P.SetParametersBasedOnAge;
 
-P=Person(0.1,DNA);
 P.DisplayTransitionIndizes;
 P.DisplayObservationIndizes;
 
@@ -79,7 +91,17 @@ if(PLOT)
     view(phi,psi);
     title('evolution')
     
-    
+    figure(4)
+    set(gcf,'NumberTitle','off')
+    set(gcf,'Name','age dependend properpties of a single person')
+    clf
+    subplot(3,1,1)
+    P.PlotNeedForIntensiveCareBasedOnAge;
+    subplot(3,1,2)
+    P.PlotIntensiveCareRecoveryBasedOnAge;
+    subplot(3,1,3)
+    P.PlotIntensiveCareTimeBasedOnAge;
+    %% will be displayed in a "next" window
     P.DisplayRewardMatrix
 end
 status = true;

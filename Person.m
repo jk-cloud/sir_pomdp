@@ -22,7 +22,7 @@ classdef Person  < handle
     %  (c) 2020 Jens Kappey and the sir_pomdp contributors.
     %
     properties
-        Name = []
+        Name = [];
     end
     %%
     properties(SetAccess=protected)
@@ -32,8 +32,14 @@ classdef Person  < handle
         DiseaseDuration=10;             % duration in days of having no pathogens after infection
         vacc=0.0;                       % probability of successfully vaccinating a person [0.0 1.0]
         IntensiveCare=0.01;             % probability of needing intensive care when infected [0.0 1.0]
+        NeedForIntensiveCareAge=[];     % interpolation vectors for intensive care
+        NeedForIntensiveCare=[];
         IntensiveCareTime=10;           % time in days needing intensive care after being taken in intensive care
+        IntensiveCareTimeAge=[];
+        IntensiveCareTimeDays=[];
         IntensiveCareRecovery=0.995;     % probability of recovering when in intensive care  [0.0 1.0]
+        IntensiveCareRecoveryAge=[];
+        IntensiveCareRecoveryProb=[];
         IsolationDuration=10;           % time in days for someone being isolated at home ill or not
         notisolationSus=0.0;               % probability of not isolating oneself when susceptible
         notisolationInf=0.0;               % probability of not isolating oneself when infectious ... TODO not implemented yet
@@ -83,26 +89,36 @@ classdef Person  < handle
         
         DNA=[];
         
+        age=[]; 
+        
         vectorize=false; % should be set to false. The alternative code is
         % much slower
     end
     
     methods
         %%
-        function obj = Person(p,DNA)
+        function obj = Person(p,DNA,age)
             %PERSON Construct an instance of this class
             %
             switch nargin
                 case 1
                     obj.p = p;
+                    obj.age= 50;
                     
                 case 2
                     obj.p = p;
                     obj.DNA=DNA;
+                    obj.age= 50;
+                
+                case 3
+                    obj.p = p;
+                    obj.DNA=DNA;
+                    obj.age= age;
                     
                 otherwise
                     
                     obj.p=0.01;
+                    obj.age= 50;
                     
             end
             obj.Name = "Person";
@@ -144,6 +160,13 @@ classdef Person  < handle
             obj.a=1; % do nothing as initial action;
             obj.reward=0;
             obj.InitRewardMatrix;
+            obj.NeedForIntensiveCareAge=[1,20,50,100];
+            obj.NeedForIntensiveCare = obj.IntensiveCare*ones(size(obj.NeedForIntensiveCareAge));
+            obj.IntensiveCareRecoveryAge=[1,20,50,51,63,100];
+            obj.IntensiveCareRecoveryProb=obj.IntensiveCareRecovery*ones(size(obj.IntensiveCareRecoveryAge));
+            obj.IntensiveCareTimeAge=[1,20,50,100];
+            obj.IntensiveCareTimeDays=obj.IntensiveCareTime*ones(size(obj.IntensiveCareTimeAge));
+            obj.SetParametersBasedOnAge;
         end
         %%
         function str = DisplayTransitionIndizes(obj)
@@ -195,7 +218,6 @@ classdef Person  < handle
                 end
             end
         end
-        
         %%
         function R = CompileRandomMatrix(obj,ti,tj,indr,M,N)
             
@@ -216,7 +238,6 @@ classdef Person  < handle
             R=sparse(ri,rj,rv,M,N);
             
         end
-        
         %%
         function C=CompileStateChange(obj,T,R,M,N)
             % find the largest negative element row-wise
@@ -241,7 +262,6 @@ classdef Person  < handle
             
             C=sparse(l,m,ones(size(l)),M,N);
         end
-        
         %%
         function obj=FindAction(obj)
             % greedy algorithm
@@ -282,7 +302,6 @@ classdef Person  < handle
                 warning('wrong number of possible action obj.na=%i',obj.na);
             end
         end
-        
         %%
         function str=GetParameters(obj)
             
@@ -309,7 +328,6 @@ classdef Person  < handle
                 disp(str{k})
             end
         end
-        
         %%
         function obj=UpdatePerson(obj,p)
             obj.p=p;
@@ -319,7 +337,6 @@ classdef Person  < handle
             obj.FindAction;
             obj.UpdateReward;
         end
-        
         %%
         function obj=UpdateState(obj)
             v=[];ti=[];tj=[];
@@ -982,21 +999,19 @@ classdef Person  < handle
             end
             obj.b=bs;
         end
-        
-        
+        %%
         function n=GetNumberOfStates(obj)
             n=obj.n;
         end
-        
+        %%
         function n=GetNumberOfObservations(obj)
             n=obj.no;
         end
-        
+        %%
         function n=GetNumberOfActions(obj)
             n=obj.na;
         end
-        
-        
+        %%
         function status=IsSusceptible(obj)
             if(obj.s(obj.ns)==1)
                 status=true;
@@ -1004,7 +1019,6 @@ classdef Person  < handle
                 status=false;
             end
         end
-        
         %%
         function status=SpreadsInfection(obj)
             i=find(obj.s);
@@ -1144,8 +1158,7 @@ classdef Person  < handle
                     %obj.R(:,:)=0;
                 end
             end
-        end
-        
+        end       
         %%
         function obj=DisplayRewardMatrix(obj)
             figure
@@ -1192,6 +1205,84 @@ classdef Person  < handle
                 end
             end
             obj.a=a_save;
+        end
+        %%
+        function obj=SetParametersBasedOnAge(obj)
+            obj.InterpolateIntensiveCare;             % probability of needing intensive care when infected [0.0 1.0]
+            obj.InterpolateIntensiveCareTime;         % time in days needing intensive care after being taken in intensive care
+            obj.InterpolateIntensiveCareRecovery;     % probability of recovering when in intensive care  [0.0 1.0]
+        end
+        %%
+        function obj=SetNeedForIntensiveCareBasedOnAge(obj,x,y)
+                    obj.NeedForIntensiveCareAge = x;
+                    obj.NeedForIntensiveCare    = y;
+        end
+        %%
+        function obj=InterpolateIntensiveCare(obj)
+            if(not (isempty(obj.NeedForIntensiveCareAge) || isempty(obj.NeedForIntensiveCare)))
+                obj.IntensiveCare = spline(obj.NeedForIntensiveCareAge,obj.NeedForIntensiveCare,obj.age);
+            end
+        end
+        %%
+        function obj=PlotNeedForIntensiveCareBasedOnAge(obj)
+            xmin=min(obj.NeedForIntensiveCareAge);
+            xmax=max(obj.NeedForIntensiveCareAge);
+            x=linspace(xmin,xmax,100);
+            y=spline(obj.NeedForIntensiveCareAge,obj.NeedForIntensiveCare,x);
+            hold on
+            plot(x,y)
+            plot(obj.NeedForIntensiveCareAge,obj.NeedForIntensiveCare,'bo')
+            plot(obj.age,obj.IntensiveCare,'r*')
+            xlabel('age');
+            ylabel('prob. of intensive care');
+        end
+        %%
+        function obj=SetIntensiveCareRecoveryBasedOnAge(obj,x,y)
+                    obj.IntensiveCareRecoveryAge  = x;
+                    obj.IntensiveCareRecoveryProb = y;
+        end
+        %%
+        function obj=InterpolateIntensiveCareRecovery(obj)
+            if(not (isempty(obj.IntensiveCareRecoveryAge) || isempty(obj.IntensiveCareRecoveryProb)))
+                obj.IntensiveCareRecovery = spline(obj.IntensiveCareRecoveryAge,obj.IntensiveCareRecoveryProb,obj.age);
+            end
+        end
+        %%
+        function obj=PlotIntensiveCareRecoveryBasedOnAge(obj)
+            xmin=min(obj.IntensiveCareRecoveryAge);
+            xmax=max(obj.IntensiveCareRecoveryAge);
+            x=linspace(xmin,xmax,100);
+            y=spline(obj.IntensiveCareRecoveryAge,obj.IntensiveCareRecoveryProb,x);
+            hold on
+            plot(x,y)
+            plot(obj.IntensiveCareRecoveryAge,obj.IntensiveCareRecoveryProb,'bo')
+            plot(obj.age,obj.IntensiveCareRecovery,'r*')
+            xlabel('age');
+            ylabel('prob. of recovering in intensive care');
+        end
+        %%
+        function obj=SetIntensiveCareTimeBasedOnAge(obj,x,y)
+            obj.IntensiveCareTimeAge  = x;
+            obj.IntensiveCareTimeDays = y;
+        end
+        %%
+        function obj=InterpolateIntensiveCareTime(obj)
+            if(not (isempty(obj.IntensiveCareTimeAge) || isempty(obj.IntensiveCareTimeDays)))
+                obj.IntensiveCareTime = spline(obj.IntensiveCareTimeAge,obj.IntensiveCareTimeDays,obj.age);
+            end
+        end
+        %%
+        function obj=PlotIntensiveCareTimeBasedOnAge(obj)
+            xmin=min(obj.IntensiveCareTimeAge);
+            xmax=max(obj.IntensiveCareTimeAge);
+            x=linspace(xmin,xmax,100);
+            y=spline(obj.IntensiveCareTimeAge,obj.IntensiveCareTimeDays,x);
+            hold on
+            plot(x,y)
+            plot(obj.IntensiveCareTimeAge,obj.IntensiveCareTimeDays,'bo')
+            plot(obj.age,obj.IntensiveCareTime,'r*')
+            xlabel('age');
+            ylabel('days in intensive care');
         end
         
     end

@@ -1,5 +1,5 @@
-function  [S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_community(DNA)
-%TEST_STOC_COMMUNITY test routine for stochastic simulation of a community
+function  [S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_age_community(DNA)
+%TEST_STOC_AGE_COMMUNITY test routine for stochastic simulation of a community
 %   Driver routine for simulating the spread of a disease within a 
 %   community of people using many realistations of the function
 %
@@ -7,7 +7,7 @@ function  [S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_community(DNA)
 % 
 %   to build averages.
 %
-%  usage:  [S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_community([DNA])
+%  usage:  [S,I,R,V,ISO,D,ICA,REWARD] = test_stoc_age_community([DNA])
 %
 %      where DNA sets the reward matrix in the class Person
 %      DNA con be used to interface the code using a genetic algorithm.
@@ -46,9 +46,9 @@ C = community(DNA);
 C.SetPopulationSize(N);
 C.SetSimulationSteps(steps);
 C.SetNumberOfRealizations(M);
-%C.SetNeedForIntensiveCareBasedOnAge(NeedForIntensiveCareAge,NeedForIntensiveCare);
-%C.SetIntensiveCareRecoveryBasedOnAge(IntensiveCareRecoveryAge,IntensiveCareRecoveryProb);
-%C.SetIntensiveCareTimeBasedOnAge(IntensiveCareTimeAge,IntensiveCareTimeDays);
+C.SetNeedForIntensiveCareBasedOnAge(NeedForIntensiveCareAge,NeedForIntensiveCare);
+C.SetIntensiveCareRecoveryBasedOnAge(IntensiveCareRecoveryAge,IntensiveCareRecoveryProb);
+C.SetIntensiveCareTimeBasedOnAge(IntensiveCareTimeAge,IntensiveCareTimeDays);
 C.Initialize;
 C.Evolve;
 
@@ -137,7 +137,6 @@ if(PLOT)
     
 end
 end
-
 
 
 

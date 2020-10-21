@@ -17,3 +17,7 @@ tic;test_community(DNA);toc
 disp('test_stoc_community')
 tic;test_stoc_community;toc
 tic;test_stoc_community(DNA);toc
+
+disp('test_stoc_age_community')
+tic;test_stoc_age_community;toc
+tic;test_stoc_age_community(DNA);toc
