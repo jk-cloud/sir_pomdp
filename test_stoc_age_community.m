@@ -25,7 +25,7 @@ switch(nargin)
       PLOT=true;
 end
 
-M=12;      % realisations  
+M=6;      % realisations  
 N=10000;   % PopulationSize
 steps=30; % time steps
 

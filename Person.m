@@ -26,18 +26,18 @@ classdef Person  < handle
     end
     %%
     properties(SetAccess=protected)
-        notdetect=.999;                  % probability of not detecting the infectious state correctly without a test set [0.0 1.0]
+        notdetect=.999;                 % probability of not detecting the infectious state correctly without a test set [0.0 1.0]
         notdetectTestSet=0.2;           % probability of not detecting the infectious state correctly with a test set [0.0 1.0]
         IncubationPeriod=5;             % number of days of after infection, when symptoms show   Covid-19:  mean 5 days 2 to 20 days
         DiseaseDuration=10;             % duration in days of having no pathogens after infection
         vacc=0.0;                       % probability of successfully vaccinating a person [0.0 1.0]
-        IntensiveCare=0.01;             % probability of needing intensive care when infected [0.0 1.0]
+        IntensiveCare=0.02;             % probability of needing intensive care when infected [0.0 1.0]
         NeedForIntensiveCareAge=[];     % interpolation vectors for intensive care
         NeedForIntensiveCare=[];
         IntensiveCareTime=10;           % time in days needing intensive care after being taken in intensive care
         IntensiveCareTimeAge=[];
         IntensiveCareTimeDays=[];
-        IntensiveCareRecovery=0.995;     % probability of recovering when in intensive care  [0.0 1.0]
+        IntensiveCareRecovery=0.98;     % probability of recovering when in intensive care  [0.0 1.0]
         IntensiveCareRecoveryAge=[];
         IntensiveCareRecoveryProb=[];
         IsolationDuration=10;           % time in days for someone being isolated at home ill or not
